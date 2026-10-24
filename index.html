@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>墨记</title>
+<meta name="description" content="墨记：手写笔记、PDF 批注与笔记本管理">
+<meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#191c22" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="墨记">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ 文稿库 ============ -->
+  <section id="library" class="view">
+    <header class="lib-top">
+      <button class="icon-btn only-narrow" id="lib-menu-btn" aria-label="打开文件夹列表"><i data-icon="menu"></i></button>
+      <div class="brand"><span class="brand-seal">墨</span><span class="brand-name">墨记</span></div>
+      <label class="search">
+        <i data-icon="search"></i>
+        <input id="lib-search" type="search" placeholder="搜索笔记本名称或页面里的文字" autocomplete="off">
+      </label>
+      <div class="lib-actions">
+        <button class="btn primary" id="btn-new"><i data-icon="plus"></i><span>新建</span></button>
+        <button class="icon-btn" id="btn-lib-more" aria-label="更多"><i data-icon="more"></i></button>
+      </div>
+    </header>
+    <div class="lib-body">
+      <nav class="lib-side" id="lib-side" aria-label="文件夹">
+        <button class="side-item" data-filter="all"><i data-icon="book"></i><span>全部笔记本</span><em class="count" id="cnt-all"></em></button>
+        <button class="side-item" data-filter="fav"><i data-icon="star"></i><span>收藏</span><em class="count" id="cnt-fav"></em></button>
+        <div class="side-label"><span>文件夹</span><button class="icon-btn xs" id="btn-new-folder" aria-label="新建文件夹"><i data-icon="plus"></i></button></div>
+        <div id="folder-list" class="folder-list"></div>
+        <div class="side-foot" id="storage-info"></div>
+      </nav>
+      <div class="side-scrim only-narrow" id="side-scrim"></div>
+      <main class="lib-main">
+        <div class="lib-head">
+          <h1 id="lib-title">全部笔记本</h1>
+          <span class="lib-sub" id="lib-sub"></span>
+        </div>
+        <div class="nb-grid" id="nb-grid"></div>
+        <p class="lib-empty" id="lib-empty" hidden></p>
+      </main>
+    </div>
+  </section>
+
+  <!-- ============ 编辑器 ============ -->
+  <section id="editor" class="view" hidden>
+    <header class="ed-top">
+      <button class="icon-btn" id="ed-back" aria-label="返回文稿库" title="返回文稿库"><i data-icon="back"></i></button>
+      <input id="ed-title" class="ed-title" aria-label="笔记本名称" maxlength="60">
+      <div class="tools" id="tools" role="toolbar" aria-label="工具">
+        <button class="tool" data-tool="pen" title="钢笔 (P)" aria-label="钢笔"><i data-icon="pen"></i><span class="tdot"></span></button>
+        <button class="tool" data-tool="hl" title="荧光笔 (H)" aria-label="荧光笔"><i data-icon="highlighter"></i><span class="tdot"></span></button>
+        <button class="tool" data-tool="eraser" title="橡皮 (E)" aria-label="橡皮"><i data-icon="eraser"></i></button>
+        <button class="tool" data-tool="lasso" title="套索 (L)" aria-label="套索"><i data-icon="lasso"></i></button>
+        <button class="tool" data-tool="shape" title="形状 (S)" aria-label="形状"><i data-icon="shape"></i><span class="tdot"></span></button>
+        <button class="tool" data-tool="text" title="文字 (T)" aria-label="文字"><i data-icon="text"></i><span class="tdot"></span></button>
+        <button class="tool" data-tool="image" title="插入图片 (I)" aria-label="插入图片"><i data-icon="image"></i></button>
+      </div>
+      <div class="ed-actions">
+        <button class="icon-btn" id="btn-undo" title="撤销 (Ctrl+Z)" aria-label="撤销"><i data-icon="undo"></i></button>
+        <button class="icon-btn" id="btn-redo" title="重做 (Ctrl+Shift+Z)" aria-label="重做"><i data-icon="redo"></i></button>
+        <span class="vsep"></span>
+        <button class="icon-btn" id="btn-addpage" title="在后面添加页面" aria-label="添加页面"><i data-icon="addpage"></i></button>
+        <button class="icon-btn" id="btn-pages" title="页面列表" aria-label="页面列表"><i data-icon="pages"></i></button>
+        <button class="icon-btn" id="btn-ed-more" title="更多" aria-label="更多"><i data-icon="more"></i></button>
+      </div>
+    </header>
+    <div class="ed-options" id="ed-options"></div>
+    <div class="ed-body">
+      <div class="stage" id="stage">
+        <canvas id="cv-base"></canvas>
+        <canvas id="cv-over"></canvas>
+        <textarea id="text-edit" class="text-edit" spellcheck="false" hidden></textarea>
+        <div id="sel-menu" class="sel-menu" hidden></div>
+      </div>
+      <aside class="pages-panel" id="pages-panel" hidden>
+        <div class="pp-head"><span>页面</span><span class="pp-count" id="pp-count"></span></div>
+        <div class="pp-list" id="pp-list"></div>
+      </aside>
+    </div>
+    <footer class="ed-foot">
+      <div class="pg-nav">
+        <button class="icon-btn sm" id="pg-prev" aria-label="上一页" title="上一页 (←)"><i data-icon="back"></i></button>
+        <span id="pg-label" class="pg-label">1 / 1</span>
+        <button class="icon-btn sm" id="pg-next" aria-label="下一页" title="下一页 (→)"><i data-icon="next"></i></button>
+      </div>
+      <div class="zoom">
+        <button class="icon-btn sm" id="zoom-out" aria-label="缩小"><i data-icon="minus"></i></button>
+        <button class="zoom-label" id="zoom-label" title="切换整页 / 适应宽度">100%</button>
+        <button class="icon-btn sm" id="zoom-in" aria-label="放大"><i data-icon="plus"></i></button>
+      </div>
+    </footer>
+  </section>
+</div>
+
+<div id="modal-root"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="js/core.js"></script>
+<script src="js/db.js"></script>
+<script src="js/render.js"></script>
+<script src="js/handwrite.js"></script>
+<script src="js/scan.js"></script>
+<script src="js/formula.js"></script>
+<script src="js/io.js"></script>
+<script src="js/library.js"></script>
+<script src="js/editor.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
